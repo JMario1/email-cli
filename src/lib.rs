@@ -107,7 +107,7 @@ mod tests {
         let out = "\
         {\"valid_domains\":[\"gmail.com\"],\"total_emails_parsed\":1,\"total_valid_emails\":1,\"categories\":{\"gmail.com\":1}}";
 
-        println!("out {:?}", check_valid_email(content).unwrap());
+        
         assert_eq!(out, check_valid_email(content).unwrap())
     }
 }
