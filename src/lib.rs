@@ -2,7 +2,7 @@ use clap::{App, Arg, ArgMatches};
 
 pub fn matches<'a>() -> ArgMatches<'a>{
 
-    App::new("new- cli")
+    App::new("new-cli")
     .version("1.0.0")
     .author("jude omenai")
     .about("parse email")
