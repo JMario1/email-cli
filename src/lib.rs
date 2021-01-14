@@ -30,13 +30,27 @@ pub fn run(value: &str){
     let is_json = matches().value_of("output")
             .unwrap().contains(".json") ;
     if is_json{
-        let out = check_valid_email(&content).unwrap();
+        let out = json_output(&content).unwrap();
         let mut file = fs::File::create(matches().value_of("output").unwrap()).expect("unable to create file");
         
         file.write_all(&out.as_bytes()).expect("could not write to file");
+
+        println!("output file: {:?}", out);
     }
 
-    println!("input file {:?}", value);
+    if matches().is_present("extended") && matches().is_present("output"){
+        
+        let out = extended(&content);
+
+        let mut file = fs::File::create(matches().value_of("output").unwrap()).expect("unable to create file");
+
+        file.write(b"Email\n").expect("could not write to file");
+        file.write_all(&out.iter().as_slice().join("\n").as_bytes()).expect("could not write to file");
+
+        println!("output file: {:?}", out);
+    }
+
+
 }
 
 use std::fs;
@@ -56,6 +70,8 @@ use std::collections::HashMap;
 use serde::Serialize;
 use regex::Regex;
 use serde_json;
+use resolv::{Resolver, Class, RecordType, Section, Record};
+use resolv::record::MX;
 
 #[derive(Serialize)]
 struct Object<'a> {
@@ -65,8 +81,32 @@ struct Object<'a> {
     categories: HashMap<& 'a str, u32>
 }
 
+fn extended(content: &str) -> Vec<&str>{
+    
+    let re = Regex::new(r"^.+@.+\..+$").unwrap();
+    let mut vec: Vec<&str> = Vec::new();
+    let mut resolver = Resolver::new().unwrap();
 
-fn check_valid_email(content: &str) -> Result<std::string::String, serde_json::Error>{
+    for line in content.lines().skip(1) {
+
+        if re.is_match(line) && !line.trim().is_empty() {
+            let dormain: &str = line.split("@").collect::<Vec<&str>>()[1];
+            let mut res = match resolver.query(dormain.as_bytes(), Class::IN, RecordType::MX){
+                Ok(v) => v,
+                Err(_) => continue
+            };
+            let mx: Record<MX> = res.get_record(Section::Answer, 0).unwrap();
+            if !mx.name.is_empty(){
+                vec.push(line.trim())
+            }
+            
+        }
+    }
+
+    vec
+}
+
+fn json_output(content: &str) -> Result<std::string::String, serde_json::Error>{
 
     let re = Regex::new(r"^.+@.+\..+$").unwrap();
     let mut vec: Vec<&str> = Vec::new();
@@ -118,7 +158,7 @@ mod tests {
         {\"valid_domains\":[\"gmail.com\"],\"total_emails_parsed\":1,\"total_valid_emails\":1,\"categories\":{\"gmail.com\":1}}";
 
         
-        assert_eq!(out, check_valid_email(content).unwrap())
+        assert_eq!(out, json_output(content).unwrap())
     }
 
     #[test]
@@ -136,6 +176,22 @@ mod tests {
         {\"valid_domains\":[\"gmail.com\"],\"total_emails_parsed\":3,\"total_valid_emails\":2,\"categories\":{\"gmail.com\":2}}";
 
         
-        assert_eq!(out, check_valid_email(content).unwrap())
+        assert_eq!(out, json_output(content).unwrap())
+    }
+
+    #[test]
+    fn valid_mx(){
+        let inp = "Email
+        jd@gmail.com";
+        let out = vec!["jd@gmail.com"];
+        assert_eq!(extended(inp), out)
+    }
+
+    #[test]
+    fn invalid_mx(){
+        let inp = "Email
+        jd@jju.com";
+        let out: Vec<&str> = Vec::new();
+        assert_eq!(extended(inp), out)
     }
 }

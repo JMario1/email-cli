@@ -36,6 +36,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf1de2fe8c75bc145a2f577add951f8134889b4795d47466a54a5c846d691693"
 
 [[package]]
+name = "byteorder"
+version = "1.4.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ae44d1a3d5a19df61dd0c8beb138458ac2a53a7ac09eba97d55592540004306b"
+
+[[package]]
 name = "clap"
 version = "2.33.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -71,6 +77,7 @@ version = "0.1.0"
 dependencies = [
  "clap",
  "regex",
+ "resolv",
  "serde",
  "serde_json",
 ]
@@ -86,6 +93,15 @@ name = "libc"
 version = "0.2.82"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "89203f3fba0a3795506acaad8ebce3c80c0af93f994d5a1d7a0b1eeb23271929"
+
+[[package]]
+name = "libresolv-sys"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1ff4d206eadba2734749aa66e254f14d478633b7bacf7f5c6ec9384c7ab09eb2"
+dependencies = [
+ "libc",
+]
 
 [[package]]
 name = "memchr"
@@ -128,6 +144,17 @@ name = "regex-syntax"
 version = "0.6.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b5eb417147ba9860a96cfe72a0b93bf88fee1744b5636ec99ab20c1aa9376581"
+
+[[package]]
+name = "resolv"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e6f29bf8dc2d96825398de000d35d767a6ea3369c7797e4065b6db7ed0063b31"
+dependencies = [
+ "byteorder",
+ "libc",
+ "libresolv-sys",
+]
 
 [[package]]
 name = "ryu"
